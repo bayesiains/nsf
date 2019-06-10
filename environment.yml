@@ -1,0 +1,24 @@
+name: nsf
+channels:
+  - defaults
+  - pytorch
+  - conda-forge
+dependencies:
+  - h5py
+  - matplotlib
+  - pip
+  - python
+  - scikit-image
+  - tqdm
+  - numpy
+  - scipy
+  - pytorch
+  - cudatoolkit=9.0
+  - torchvision
+  - pandas
+  - pip:
+    - requests
+    - sacred
+    - tensorflow
+    - tensorboard
+    - tensorboardx

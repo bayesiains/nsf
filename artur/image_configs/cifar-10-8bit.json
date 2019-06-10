@@ -1,0 +1,52 @@
+{
+  "actnorm": true,
+  "alpha": 0.05,
+  "batch_size": 512,
+  "cosine_annealing": true,
+  "coupling_layer_type": "rational_quadratic_spline",
+  "dataset": "cifar-10-fast",
+  "dropout_prob": 0.2,
+  "eta_min": 0.0,
+  "flow_checkpoint": null,
+  "hidden_channels": 96,
+  "intervals": {
+    "eval": 500,
+    "log": 10,
+    "reconstruct": 500,
+    "sample": 250,
+    "save": 500
+  },
+  "learning_rate": 0.0005,
+  "levels": 3,
+  "multi_gpu": false,
+  "multi_scale": false,
+  "num_bits": 8,
+  "num_res_blocks": 3,
+  "num_steps": 200000,
+  "num_workers": 1,
+  "optimizer_checkpoint": null,
+  "pad": 2,
+  "preprocessing": "glow",
+  "resnet_batchnorm": true,
+  "run_descr": "8-bit",
+  "seed": 656693568,
+  "spline_params": {
+    "apply_unconditional_transform": false,
+    "min_bin_height": 0.001,
+    "min_bin_width": 0.001,
+    "min_derivative": 0.001,
+    "num_bins": 4,
+    "tail_bound": 3.0
+  },
+  "start_step": 0,
+  "steps_per_level": 7,
+  "temperatures": [
+    0.5,
+    0.75,
+    1.0
+  ],
+  "use_gpu": true,
+  "use_resnet": true,
+  "valid_frac": 0.01,
+  "warmup_fraction": 0.0
+}
