@@ -25,46 +25,43 @@ data providers.
 
 ### 2D image density experiments
 
-Use `conor/experiments/face.py` or `conor/experiments/plane.py`.
+Use `experiments/face.py` or `experiments/plane.py`.
 
 ### UCI experiments
 
-Use `conor/experiments/uci.py`.
+Use `experiments/uci.py`.
 
 ### VAE experiments
 
-Use `conor/experiments/vae.py`.
+Use `experiments/vae.py`.
 
 ### Image experiments
 
-Use `artur/images.py`.
+Use `experiments/images.py`.
 
 [Sacred](https://github.com/IDSIA/sacred) is used to organize image experiments. See the 
 [documentation](http://sacred.readthedocs.org) for more information.
 
-`artur/image_configs` contains .json configurations used for RQ-NSF (C) experiments. For baseline
-experiments use `coupling_layer_type='affine'`.
+`experiments/image_configs` contains .json configurations used for RQ-NSF (C) experiments. For baseline experiments use `coupling_layer_type='affine'`.
 
 For example, to run RQ-NSF (C) on CIFAR-10 8-bit:
 ```bash
-python artur/images.py with artur/image_configs/cifar-10-8bit.json
+python experiments/images.py with experiments/image_configs/cifar-10-8bit.json
 ```
 
 Corresponding affine baseline run:
 ```bash
-python artur/images.py with artur/image_configs/cifar-10-8bit.json coupling_layer_type='affine'
+python experiments/images.py with experiments/image_configs/cifar-10-8bit.json coupling_layer_type='affine'
 ```
 
 To evaluate on the test set:
 ```bash
-python artur/images.py eval_on_test with artur/image_configs/cifar-10-8bit.json 
-flow_checkpoint='<saved_checkpoint>'
+python experiments/images.py eval_on_test with experiments/image_configs/cifar-10-8bit.json flow_checkpoint='<saved_checkpoint>'
 ```
 
 To sample:
 ```bash
-python artur/images.py sample with artur/image_configs/cifar-10-8bit.json 
-flow_checkpoint='<saved_checkpoint>'
+python experiments/images.py sample with experiments/image_configs/cifar-10-8bit.json flow_checkpoint='<saved_checkpoint>'
 ```
 
 

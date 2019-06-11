@@ -16,7 +16,7 @@ import data as data_
 import nn as nn_
 import utils
 
-from conor import cutils
+from experiments import cutils
 from nde import distributions, flows, transforms
 
 parser = argparse.ArgumentParser()

@@ -14,10 +14,10 @@ import data as data_
 import nn as nn_
 import utils
 
-from conor import cutils
+from experiments import cutils
 from nde import distributions, flows, transforms
 
-dataset_name = 'shannon'
+dataset_name = 'diamond'
 path = os.path.join(cutils.get_final_root(), '{}-final.json'.format(dataset_name))
 with open(path) as file:
     dictionary = json.load(file)
@@ -33,10 +33,7 @@ else:
     device = torch.device('cpu')
 
 # create data
-train_dataset = data_.load_face_dataset(
-    name=args.dataset_name,
-    num_points=args.n_data_points
-)
+train_dataset = data_.load_plane_dataset(args.dataset_name, args.n_data_points)
 train_loader = data_.InfiniteLoader(
     dataset=train_dataset,
     batch_size=args.batch_size,
@@ -44,13 +41,13 @@ train_loader = data_.InfiniteLoader(
     drop_last=True,
     num_epochs=None
 )
-dim = 2
 
 # Generate test grid data
 num_points_per_axis = 512
+limit = 4
 bounds = np.array([
-    [1e-3, 1 - 1e-3],
-    [1e-3, 1 - 1e-3]
+    [-limit, limit],
+    [-limit, limit]
 ])
 grid_dataset = data_.TestGridDataset(
     num_points_per_axis=num_points_per_axis,
@@ -61,35 +58,72 @@ grid_loader = data.DataLoader(
     batch_size=1000,
     drop_last=False
 )
+dim = 2
 
 # create model
-distribution = distributions.TweakedUniform(
-    low=torch.zeros(dim),
-    high=torch.ones(dim)
-)
+# distribution = distributions.TweakedUniform(
+#     low=torch.zeros(dim),
+#     high=torch.ones(dim)
+# )
+distribution = distributions.StandardNormal((2,))
+# transform = transforms.CompositeTransform([
+#     transforms.Sigmoid(),
+#     transforms.PiecewiseRationalQuadraticCouplingTransform(
+#             mask=utils.create_alternating_binary_mask(features=dim, even=True),
+#             transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
+#                 in_features=in_features,
+#                 out_features=out_features,
+#                 hidden_features=32,
+#                 num_blocks=2,
+#                 use_batch_norm=True
+#             ),
+#             num_bins=args.num_bins,
+#             apply_unconditional_transform=False
+#     ),
+#     transforms.PiecewiseRationalQuadraticCouplingTransform(
+#             mask=utils.create_alternating_binary_mask(features=dim, even=False),
+#             transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
+#                 in_features=in_features,
+#                 out_features=out_features,
+#                 hidden_features=32,
+#                 num_blocks=2,
+#                 use_batch_norm=True
+#             ),
+#             num_bins=args.num_bins,
+#             apply_unconditional_transform=False
+#     )
+# ])
+
 transform = transforms.CompositeTransform([
-    transforms.CompositeTransform([
-        transforms.PiecewiseRationalQuadraticCouplingTransform(
-            mask=utils.create_alternating_binary_mask(
-                features=dim,
-                even=(i % 2 == 0)
-            ),
-            transform_net_create_fn=lambda in_features, out_features:
-            nn_.ResidualNet(
+    # transforms.Sigmoid(),
+    transforms.PiecewiseRationalQuadraticCouplingTransform(
+            mask=utils.create_alternating_binary_mask(features=dim, even=True),
+            transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
-                hidden_features=args.hidden_features,
-                num_blocks=args.num_transform_blocks,
-                dropout_probability=args.dropout_probability,
-                use_batch_norm=args.use_batch_norm
+                hidden_features=32,
+                num_blocks=2,
+                use_batch_norm=True
             ),
+            tails='linear',
+            tail_bound=5,
             num_bins=args.num_bins,
-            tails=None,
-            tail_bound=1,
-            # apply_unconditional_transform=args.apply_unconditional_transform,
-            min_bin_width=args.min_bin_width
-        ),
-    ]) for i in range(args.num_flow_steps)
+            apply_unconditional_transform=False
+    ),
+    transforms.PiecewiseRationalQuadraticCouplingTransform(
+            mask=utils.create_alternating_binary_mask(features=dim, even=False),
+            transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
+                in_features=in_features,
+                out_features=out_features,
+                hidden_features=32,
+                num_blocks=2,
+                use_batch_norm=True
+            ),
+            tails='linear',
+            tail_bound=5,
+            num_bins=args.num_bins,
+            apply_unconditional_transform=False
+    )
 ])
 
 flow = flows.Flow(transform, distribution).to(device)
@@ -109,7 +143,7 @@ for batch in grid_loader:
         (log_density_np, utils.tensor2numpy(log_density))
     )
 
-vmax = np.exp(log_density_np).max()
+vmax = np.exp(log_density_np).max() * 0.7
 cmap = cm.magma
 # plot data
 figure, axes = plt.subplots(1, 1, figsize=(2.5, 2.5))
@@ -154,4 +188,3 @@ plt.tight_layout()
 path = os.path.join(cutils.get_output_root(), '{}-samples.png'.format(dataset_name))
 plt.savefig(path, bbox_inches='tight', pad_inches=0, dpi=300)
 plt.close()
-

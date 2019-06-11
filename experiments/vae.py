@@ -22,7 +22,7 @@ from torchvision.transforms import functional as tvF
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
-from conor import cutils
+from experiments import cutils
 from nde import distributions as distributions_, flows, transforms
 
 parser = argparse.ArgumentParser()
@@ -215,7 +215,7 @@ def run(seed):
         drop_last=False,
     )
     # from matplotlib import pyplot as plt
-    # from conor import cutils
+    # from experiments import cutils
     # from torchvision.utils import make_grid
     # fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     # cutils.gridimshow(make_grid(val_batch[:64], nrow=8), ax)

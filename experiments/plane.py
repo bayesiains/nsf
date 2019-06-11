@@ -15,7 +15,7 @@ import data as data_
 import nn as nn_
 import utils
 
-from conor import cutils
+from experiments import cutils
 from nde import distributions, flows, transforms
 
 parser = argparse.ArgumentParser()
@@ -24,53 +24,37 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--use_gpu', type=bool, default=True, help='Whether to use GPU.')
 
 # data
-parser.add_argument('--dataset_name', type=str, default='shannon',
+parser.add_argument('--dataset_name', type=str, default='diamond',
                     help='Name of dataset to use.')
-parser.add_argument('--n_data_points', type=int, default=int(1e6),
+parser.add_argument('--n_data_points', default=int(1e6),
                     help='Number of unique data points in training set.')
-parser.add_argument('--batch_size', type=int, default=1024,
+parser.add_argument('--batch_size', type=int, default=512,
                     help='Size of batch used for training.')
 parser.add_argument('--num_workers', type=int, default=0,
                     help='Number of workers used in data loaders.')
 
 # model
-parser.add_argument('--base_transform_type', type=str, default='rq',
-                    help='Which base transform to use.')
-parser.add_argument('--hidden_features', type=int, default=64,
-                    help='Number of hidden features in coupling layers.')
-parser.add_argument('--num_transform_blocks', type=int, default=2,
-                    help='Number of blocks in coupling layer transform.')
-parser.add_argument('--use_batch_norm', type=int, default=0,
-                    choices=[0, 1],
-                    help='Whether to use batch norm in coupling layer transform.')
-parser.add_argument('--dropout_probability', type=float, default=0.0,
-                    help='Dropout probability for coupling transform.')
-parser.add_argument('--num_bins', type=int, default=128,
-                    help='Number of bins in piecewise cubic coupling transform.')
-parser.add_argument('--apply_unconditional_transform', type=int, default=0,
-                    choices=[0, 1],
-                    help='Whether to apply unconditional transform in coupling layer.')
-parser.add_argument('--min_bin_width', type=float, default=1e-3,
-                    help='Minimum bin width for piecewise transforms.')
-parser.add_argument('--num_flow_steps', type=int, default=2,
-                    help='Number of steps of flow.')
+parser.add_argument('--num_bins', type=int, default=64,
+                    help='Number of bins to use ')
 
 # optimization
-parser.add_argument('--learning_rate', type=float, default=5e-4,
+parser.add_argument('--learning_rate', default=5e-4,
                     help='Learning rate for Adam.')
-parser.add_argument('--n_total_steps', type=int, default=int(1.5e6),
+parser.add_argument('--num_training_steps', default=int(5e5),
                     help='Number of total training steps.')
-parser.add_argument('--grad_norm_clip_value', type=float, default=5,
-                    help='Value by which to clip gradient norm.')
+parser.add_argument('--grad_norm_clip_value', type=float, default=5.,
+                    help='Value by which to clip grad norm.')
 
 # logging and checkpoints
-parser.add_argument('--visualize_interval', type=int, default=10000,
+parser.add_argument('--monitor_interval', default=1,
                     help='Interval in steps at which to report training stats.')
-parser.add_argument('--save_interval', type=int, default=10000,
+parser.add_argument('--visualize_interval', default=10000,
+                    help='Interval in steps at which to report training stats.')
+parser.add_argument('--save_interval', default=10000,
                     help='Interval in steps at which to save model.')
 
 # reproducibility
-parser.add_argument('--seed', type=int, default=1638128,
+parser.add_argument('--seed', default=1638128,
                     help='Random seed for PyTorch and NumPy.')
 
 args = parser.parse_args()
@@ -85,10 +69,7 @@ else:
     device = torch.device('cpu')
 
 # create data
-train_dataset = data_.load_face_dataset(
-    name=args.dataset_name,
-    num_points=args.n_data_points
-)
+train_dataset = data_.load_plane_dataset(args.dataset_name, args.n_data_points)
 train_loader = data_.InfiniteLoader(
     dataset=train_dataset,
     batch_size=args.batch_size,
@@ -96,13 +77,13 @@ train_loader = data_.InfiniteLoader(
     drop_last=True,
     num_epochs=None
 )
-dim = 2
 
 # Generate test grid data
 num_points_per_axis = 512
+limit = 4
 bounds = np.array([
-    [1e-3, 1 - 1e-3],
-    [1e-3, 1 - 1e-3]
+    [-limit, limit],
+    [-limit, limit]
 ])
 grid_dataset = data_.TestGridDataset(
     num_points_per_axis=num_points_per_axis,
@@ -113,55 +94,45 @@ grid_loader = data.DataLoader(
     batch_size=1000,
     drop_last=False
 )
+dim = 2
 
 # create model
-distribution = distributions.TweakedUniform(
-    low=torch.zeros(dim),
-    high=torch.ones(dim)
-)
+distribution = distributions.StandardNormal((2,))
+
+args.base_transform_type = 'affine'
 
 
 def create_base_transform(i):
-    if args.base_transform_type == 'rq':
-        return transforms.PiecewiseRationalQuadraticCouplingTransform(
-            mask=utils.create_alternating_binary_mask(
-                features=dim,
-                even=(i % 2 == 0)
-            ),
-            transform_net_create_fn=lambda in_features, out_features:
-            nn_.ResidualNet(
-                in_features=in_features,
-                out_features=out_features,
-                hidden_features=args.hidden_features,
-                num_blocks=args.num_transform_blocks,
-                dropout_probability=args.dropout_probability,
-                use_batch_norm=args.use_batch_norm
-            ),
-            num_bins=args.num_bins,
-            apply_unconditional_transform=False,
-        )
-    elif args.base_transform_type == 'affine':
+    if args.base_transform_type == 'affine':
         return transforms.AffineCouplingTransform(
-            mask=utils.create_alternating_binary_mask(
-                features=dim,
-                even=(i % 2 == 0)
-            ),
-            transform_net_create_fn=lambda in_features, out_features:
-            nn_.ResidualNet(
+            mask=utils.create_alternating_binary_mask(features=dim, even=(i % 2 == 0)),
+            transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
                 in_features=in_features,
                 out_features=out_features,
-                hidden_features=args.hidden_features,
-                num_blocks=args.num_transform_blocks,
-                dropout_probability=args.dropout_probability,
-                use_batch_norm=args.use_batch_norm
+                hidden_features=32,
+                num_blocks=2,
+                use_batch_norm=True
             )
         )
     else:
-        raise ValueError
+        return transforms.PiecewiseRationalQuadraticCouplingTransform(
+            mask=utils.create_alternating_binary_mask(features=dim, even=(i % 2 == 0)),
+            transform_net_create_fn=lambda in_features, out_features: nn_.ResidualNet(
+                in_features=in_features,
+                out_features=out_features,
+                hidden_features=32,
+                num_blocks=2,
+                use_batch_norm=True
+            ),
+            tails='linear',
+            tail_bound=5,
+            num_bins=args.num_bins,
+            apply_unconditional_transform=False
+        )
 
 
 transform = transforms.CompositeTransform([
-    create_base_transform(i) for i in range(args.num_flow_steps)
+    create_base_transform(i) for i in range(2)
 ])
 
 flow = flows.Flow(transform, distribution).to(device)
@@ -171,7 +142,7 @@ print('There are {} trainable parameters in this model.'.format(n_params))
 
 # create optimizer
 optimizer = optim.Adam(flow.parameters(), lr=args.learning_rate)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_total_steps)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.num_training_steps, 0)
 
 # create summary writer and write to log directory
 timestamp = cutils.get_timestamp()
@@ -181,11 +152,11 @@ filename = os.path.join(log_dir, 'config.json')
 with open(filename, 'w') as file:
     json.dump(vars(args), file)
 
-tbar = tqdm(range(args.n_total_steps))
+tbar = tqdm(range(args.num_training_steps))
 for step in tbar:
     flow.train()
-    scheduler.step(step)
     optimizer.zero_grad()
+    scheduler.step(step)
 
     batch = next(train_loader).to(device)
     log_density = flow.log_prob(batch)
@@ -195,7 +166,15 @@ for step in tbar:
         clip_grad_norm_(flow.parameters(), args.grad_norm_clip_value)
     optimizer.step()
 
-    writer.add_scalar(tag='loss', scalar_value=loss.item(), global_step=step)
+    if (step + 1) % args.monitor_interval == 0:
+        s = 'Loss: {:.4f}'.format(loss.item())
+        tbar.set_description(s)
+
+        summaries = {
+            'loss': loss.detach()
+        }
+        for summary, value in summaries.items():
+            writer.add_scalar(tag=summary, scalar_value=value, global_step=step)
 
     if (step + 1) % args.visualize_interval == 0:
         flow.eval()
@@ -227,8 +206,7 @@ for step in tbar:
         axes[1].set_yticks([])
 
         with torch.no_grad():
-            samples = utils.tensor2numpy(
-                flow.sample(num_samples=int(1e6), batch_size=int(1e5)))
+            samples = utils.tensor2numpy(flow.sample(int(1e6), batch_size=int(1e5)))
         axes[2].hist2d(samples[:, 0], samples[:, 1],
                        range=bounds, bins=512, cmap=cmap, rasterized=False)
         axes[2].set_xlim(bounds[0])

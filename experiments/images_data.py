@@ -7,7 +7,7 @@ from torchvision import datasets
 from torch.utils.data import Subset, random_split
 
 import data
-from artur import autils
+from experiments import autils
 
 class Preprocess:
     def __init__(self, num_bits):

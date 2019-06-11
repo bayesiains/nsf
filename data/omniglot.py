@@ -45,7 +45,7 @@ def main():
     loader = data.DataLoader(dataset, batch_size=16)
     batch = next(iter(loader))[0]
     from matplotlib import pyplot as plt
-    from conor import cutils
+    from experiments import cutils
     from torchvision.utils import make_grid
     fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     cutils.gridimshow(make_grid(batch, nrow=4), ax)

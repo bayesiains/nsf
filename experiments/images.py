@@ -13,9 +13,9 @@ from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from artur import autils
-from artur.autils import Conv2dSameSize, LogProbWrapper
-from artur.images_data import get_data, Preprocess
+from experiments import autils
+from experiments.autils import Conv2dSameSize, LogProbWrapper
+from experiments.images_data import get_data, Preprocess
 
 from data import load_num_batches
 from torchvision.utils import make_grid, save_image
