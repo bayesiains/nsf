@@ -1,6 +1,9 @@
 # Neural Spline Flows
 
-Implementation of modules and experiments for Neural Spline Flows paper.
+Code and experiments for the paper:
+
+> C. Durkan, A. Bekasov, I. Murray, G. Papamakarios, _Neural Spline Flows_, arXiv:1906.04032, 2019.
+> [[arXiv]](https://arxiv.org/abs/1906.04032)
 
 ## Dependencies
 
