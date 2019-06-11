@@ -7,7 +7,7 @@ Code and experiments for the paper:
 
 ## Dependencies
 
-See `environment.yml` for required Conda/pip packages, or use it create a Conda environment with 
+See `environment.yml` for required Conda/pip packages, or use this to create a Conda environment with 
 all dependencies:
 ```bash
 conda env create -f environment.yml
@@ -17,20 +17,20 @@ Tested with Python 3.5 and PyTorch 1.1.
 
 ## Data
 
-Pre-processed UCI data is available at https://zenodo.org/record/1161203#.Wmtf_XVl8eN.
+Data for density-estimation experiments is available at https://zenodo.org/record/1161203#.Wmtf_XVl8eN.
 
-Data for VAE and image experiments is downloaded automatically using either `torchvision` or custom 
+Data for VAE and image-modeling experiments is downloaded automatically using either `torchvision` or custom 
 data providers.
 
 ## Usage
 
 `DATAROOT` environment variable needs to be set before running experiments.
 
-### 2D image density experiments
+### 2D toy density experiments
 
 Use `experiments/face.py` or `experiments/plane.py`.
 
-### UCI experiments
+### Density-estimation experiments
 
 Use `experiments/uci.py`.
 
@@ -38,7 +38,7 @@ Use `experiments/uci.py`.
 
 Use `experiments/vae.py`.
 
-### Image experiments
+### Image-modeling experiments
 
 Use `experiments/images.py`.
 
