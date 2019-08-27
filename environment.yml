@@ -22,3 +22,4 @@ dependencies:
     - tensorflow
     - tensorboard
     - tensorboardx
+    - pymongo
