@@ -36,7 +36,7 @@ Use `experiments/uci.py`.
 
 ### VAE experiments
 
-Use `experiments/vae.py`.
+Use `experiments/vae_.py`.
 
 ### Image-modeling experiments
 
