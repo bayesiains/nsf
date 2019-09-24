@@ -439,13 +439,13 @@ def run(seed):
     for step in tbar:
         model.train()
         optimizer.zero_grad()
-        scheduler.step(step)
 
         batch = next(train_generator)[0].to(device)
         elbo = model.stochastic_elbo(batch, kl_multiplier=get_kl_multiplier(step))
         loss = - torch.mean(elbo)
         loss.backward()
         optimizer.step()
+        scheduler.step(step)
 
         if (step + 1) % args.monitor_interval == 0:
             model.eval()
