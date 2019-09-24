@@ -402,15 +402,6 @@ def run(seed):
         inputs_encoder=inputs_encoder
     )
 
-    # with torch.no_grad():
-    #     # elbo = model.stochastic_elbo(val_batch[:16].to(device)).mean()
-    #     # print(elbo)
-    #     elbo = model.stochastic_elbo(val_batch[:16].to(device), num_samples=100).mean()
-    #     print(elbo)
-    #     log_prob = model.log_prob_lower_bound(val_batch[:16].to(device), num_samples=1200).mean()
-    #     print(log_prob)
-    # quit()
-
     n_params = utils.get_num_parameters(model)
     print('There are {} trainable parameters in this model.'.format(n_params))
 
