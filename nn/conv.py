@@ -267,13 +267,10 @@ class ConvEncoder(nn.Module):
 
     def forward(self, inputs):
         temps = self.initial_layer(inputs)
-        # print(temps.shape)
         for residual_block in self.residual_blocks:
             temps = residual_block(temps)
-            # print(temps.shape)
         temps = self.activation(temps)
         outputs = self.final_layer(temps.reshape(-1, 4 * 4 * self.channels_multiplier * 8))
-        # print(outputs.shape)
         return outputs
 
 
