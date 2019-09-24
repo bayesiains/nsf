@@ -178,12 +178,12 @@ class SylvesterFlowConvDecoderNet(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, resample=None, activation=F.relu, dropout=None, first=False):
+    def __init__(self, in_channels, resample=None, activation=F.relu,
+                 dropout_probability=0., first=False):
         super().__init__()
         self.in_channels = in_channels
         self.resample = resample
         self.activation = activation
-        self.dropout = dropout
 
         self.residual_layer_1 = nn.Conv2d(
             in_channels=in_channels,
@@ -233,11 +233,18 @@ class ResidualBlock(nn.Module):
                 output_padding=0 if first else 1
             )
 
+        if dropout_probability > 0:
+            self.dropout = nn.Dropout(dropout_probability)
+        else:
+            self.dropout = None
+
     def forward(self, inputs):
 
         shortcut = self.shortcut_layer(inputs)
         residual_1 = self.activation(inputs)
         residual_1 = self.residual_layer_1(residual_1)
+        if self.dropout is not None:
+            residual_1 = self.dropout(residual_1)
         residual_2 = self.activation(residual_1)
         residual_2 = self.residual_2_layer(residual_2)
 
@@ -245,7 +252,8 @@ class ResidualBlock(nn.Module):
 
 
 class ConvEncoder(nn.Module):
-    def __init__(self, context_features, channels_multiplier, activation=F.relu):
+    def __init__(self, context_features, channels_multiplier,
+                 activation=F.relu, dropout_probability=0.):
         super().__init__()
         self.context_features = context_features
         self.channels_multiplier = channels_multiplier
@@ -253,12 +261,18 @@ class ConvEncoder(nn.Module):
 
         self.initial_layer = nn.Conv2d(1, channels_multiplier, kernel_size=1)
         self.residual_blocks = nn.ModuleList([
-            ResidualBlock(in_channels=channels_multiplier),
-            ResidualBlock(in_channels=channels_multiplier, resample='down'),
-            ResidualBlock(in_channels=channels_multiplier * 2),
-            ResidualBlock(in_channels=channels_multiplier * 2, resample='down'),
-            ResidualBlock(in_channels=channels_multiplier * 4),
-            ResidualBlock(in_channels=channels_multiplier * 4, resample='down')
+            ResidualBlock(in_channels=channels_multiplier,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier, resample='down',
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 2,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 2, resample='down',
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 4,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 4, resample='down',
+                          dropout_probability=dropout_probability)
         ])
         self.final_layer = nn.Linear(
             in_features=(4 * 4 * channels_multiplier * 8),
@@ -275,7 +289,8 @@ class ConvEncoder(nn.Module):
 
 
 class ConvDecoder(nn.Module):
-    def __init__(self, latent_features, channels_multiplier, activation=F.relu):
+    def __init__(self, latent_features, channels_multiplier,
+                 activation=F.relu, dropout_probability=0.):
         super().__init__()
         self.latent_features = latent_features
         self.channels_multiplier = channels_multiplier
@@ -286,12 +301,18 @@ class ConvDecoder(nn.Module):
             out_features=(4 * 4 * channels_multiplier * 8)
         )
         self.residual_blocks = nn.ModuleList([
-            ResidualBlock(in_channels=channels_multiplier * 8),
-            ResidualBlock(in_channels=channels_multiplier * 8, resample='up', first=True),
-            ResidualBlock(in_channels=channels_multiplier * 4),
-            ResidualBlock(in_channels=channels_multiplier * 4, resample='up'),
-            ResidualBlock(in_channels=channels_multiplier * 2),
-            ResidualBlock(in_channels=channels_multiplier * 2, resample='up')
+            ResidualBlock(in_channels=channels_multiplier * 8,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 8, resample='up', first=True,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 4,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 4, resample='up',
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 2,
+                          dropout_probability=dropout_probability),
+            ResidualBlock(in_channels=channels_multiplier * 2, resample='up',
+                          dropout_probability=dropout_probability)
         ])
         self.final_layer = nn.Conv2d(
             in_channels=channels_multiplier,
@@ -319,20 +340,6 @@ def main():
 
     net = ConvDecoder(latent_features=24, channels_multiplier=16)
     outputs = net(outputs)
-
-    # net = SylvesterFlowConvEncoderNet(
-    #     context_features=32,
-    #     last_kernel_shape=(width // 4, height // 4)
-    # )
-    # outputs = net(inputs)
-    # print(outputs.shape)
-    #
-    # net = SylvesterFlowConvDecoderNet(
-    #     latent_features=32,
-    #     last_kernel_shape=(width // 4, height // 4)
-    # )
-    # outputs = net(outputs)
-    # print(outputs.shape)
 
 
 if __name__ == '__main__':
