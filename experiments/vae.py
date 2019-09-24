@@ -214,13 +214,6 @@ def run(seed):
         shuffle=False,
         drop_last=False,
     )
-    # from matplotlib import pyplot as plt
-    # from experiments import cutils
-    # from torchvision.utils import make_grid
-    # fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-    # cutils.gridimshow(make_grid(val_batch[:64], nrow=8), ax)
-    # plt.show()
-    # quit()
 
     def create_linear_transform():
         if args.linear_type == 'lu':
