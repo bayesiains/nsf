@@ -1,12 +1,11 @@
 import socket
 import time
 
-# hostname = socket.gethostname()
-# on_cluster = False if hostname == 'coldingham' else True
 
 def on_cluster():
     hostname = socket.gethostname()
     return False if hostname == 'coldingham' else True
+
 
 def get_timestamp():
     formatted_time = time.strftime('%d-%b-%y||%H:%M:%S')
