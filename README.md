@@ -5,7 +5,7 @@ A record of the code and experiments for the paper:
 > C. Durkan, A. Bekasov, I. Murray, G. Papamakarios, _Neural Spline Flows_, NeurIPS 2019.
 > [[arXiv]](https://arxiv.org/abs/1906.04032) [[bibtex]](https://gpapamak.github.io/bibtex/neural_spline_flows.bib)
 
-Work in this repository has now stopped. Please go to [[nflows]](https://github.com/bayesiains/nflows) for an updated and pip-installable normalizing flows framework for PyTorch.
+Work in this repository has now stopped. Please go to [nflows](https://github.com/bayesiains/nflows) for an updated and pip-installable normalizing flows framework for PyTorch.
 
 ## Dependencies
 
