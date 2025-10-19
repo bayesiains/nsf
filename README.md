@@ -22,7 +22,9 @@ Tested with Python 3.5 and PyTorch 1.1.
 Data for density-estimation experiments is available at https://zenodo.org/record/1161203#.Wmtf_XVl8eN.
 
 Data for VAE and image-modeling experiments is downloaded automatically using either `torchvision` or custom 
-data providers.
+data providers (**NB**: see the update below).
+
+**UPDATE (19 Oct 2025)**: Data for image-modeling experiments has been moved off Google Drive and uploaded to Zenodo (https://zenodo.org/records/17390372). Custom data providers will no longer work out of the box. To fix them, note that filenames on Zenodo start with the original Google Drive IDs as used in the data provider definitions (for example, [here](https://github.com/bayesiains/nsf/blob/eaa9377f75df1193025f6b2487524cf266874472/data/imagenet.py#L54)).
 
 ## Usage
 
