@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import pandas as pd
-import utils
+from nsflow import utils
 
 from collections import Counter
 from matplotlib import pyplot as plt

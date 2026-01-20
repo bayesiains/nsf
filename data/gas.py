@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import pandas as pd
-import utils
+from nsflow import utils
 
 from matplotlib import pyplot as plt
 from torch.utils.data import Dataset

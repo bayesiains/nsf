@@ -8,7 +8,7 @@ from skimage import color, io, transform
 from torch import distributions
 from torch.utils.data import Dataset
 
-import utils
+from nsflow import utils
 
 
 class PlaneDataset(Dataset):

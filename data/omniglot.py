@@ -2,7 +2,7 @@ import numpy as np
 import os
 import torch
 
-import utils
+from nsflow import utils
 
 from PIL import Image
 from scipy.io import loadmat

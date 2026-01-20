@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import os
-import utils
+from nsflow import utils
 
 from matplotlib import pyplot as plt
 from torch.utils import data
